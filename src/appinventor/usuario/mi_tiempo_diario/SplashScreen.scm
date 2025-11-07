@@ -1,0 +1,37 @@
+#|
+$JSON
+{"YaVersion":5,"Properties":
+{"$Name":"SplashScreen",
+"AppName":"Mi_Tiempo_Diario",
+"Title":"Pantalla de presentación",
+"Scrollable":false,
+"BackgroundColor":"&HFF1B4D3E",
+"AlignHorizontal":3,
+"AlignVertical":2,
+"UsesLocation":false,
+"ShowListsAsJson":true,
+"Sizing":"Responsive",
+"Theme":"Classic",
+"BlocksToolkit":"LEGACY",
+"AppIcon":"icon.png",
+"Components":[
+{"$Name":"ImagenLogo","$Type":"Image","Properties":{
+  "Height":"200",
+  "Width":"200",
+  "Picture":"splash_icon.png",
+  "Visible":true
+}},
+{"$Name":"EtiquetaTitulo","$Type":"Label","Properties":{
+  "Text":"Mi Tiempo Diario",
+  "FontBold":true,
+  "FontSize":32,
+  "TextColor":"&HFFF7E8C9",
+  "TextAlignment":1
+}},
+{"$Name":"RelojSplash","$Type":"Clock","Properties":{
+  "TimerInterval":2000,
+  "TimerEnabled":true
+}}
+]
+}}
+|#
