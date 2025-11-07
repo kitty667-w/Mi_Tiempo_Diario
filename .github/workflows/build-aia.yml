@@ -1,0 +1,27 @@
+name: Build AIA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-aia:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build AIA (zip)
+        run: |
+          mkdir -p build
+          test -d assets
+          test -d src
+          test -d youngandroidproject
+          (cd . && zip -r "build/Mi_Tiempo_Diario.aia" assets src youngandroidproject)
+
+      - name: Publish AIA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mi_Tiempo_Diario.aia
+          path: build/Mi_Tiempo_Diario.aia
