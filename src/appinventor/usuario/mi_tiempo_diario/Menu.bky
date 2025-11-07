@@ -1,0 +1,168 @@
+#|
+$JSON
+{"YaVersion":5,"Properties":{"$Name":"Menu"},"Blocks":[
+
+/* ==== Procedimientos auxiliares ==== */
+{"$Type":"def","name":"FormatearHora","args":[{"name":"instante"}],"body":[
+  {"$Type":"return","value":{"$Type":"formatdatetime","instant":{"$Value":"instante"},"pattern":{"$Value":"HH:mm:ss"}}}
+]},
+{"$Type":"def","name":"SegundosATexto","args":[{"name":"seg"}],"body":[
+  {"$Type":"let","vars":[
+     {"name":"h","value":{"$Type":"quotient","args":[{"$Value":"seg"},{"$Value":"3600"}]}},
+     {"name":"r1","value":{"$Type":"modulo","args":[{"$Value":"seg"},{"$Value":"3600"}]}},
+     {"name":"m","value":{"$Type":"quotient","args":[{"$Value":"r1"},{"$Value":"60"}]}},
+     {"name":"s","value":{"$Type":"modulo","args":[{"$Value":"r1"},{"$Value":"60"}]}}],
+   "body":[{"$Type":"return","value":{"$Type":"join",
+     "items":[{"$Type":"format","pattern":"%02d:", "args":[{"$Value":"h"}]},
+              {"$Type":"format","pattern":"%02d:", "args":[{"$Value":"m"}]},
+              {"$Type":"format","pattern":"%02d",  "args":[{"$Value":"s"}]}]}}]}
+]},
+{"$Type":"def","name":"Vibrar","args":[],"body":[{"$Type":"call","component":"Sonido","method":"Vibrate","args":[{"$Value":"120"}]}]},
+
+/* ==== Variables de estado ==== */
+{"$Type":"var","name":"ActivoTrans","value":{"$Value":"false"}},
+{"$Type":"var","name":"ActivoEst","value":{"$Value":"false"}},
+{"$Type":"var","name":"ActivoCam","value":{"$Value":"false"}},
+{"$Type":"var","name":"ActivoDep","value":{"$Value":"false"}},
+{"$Type":"var","name":"SegTrans","value":{"$Value":"0"}},
+{"$Type":"var","name":"SegEst","value":{"$Value":"0"}},
+{"$Type":"var","name":"SegCam","value":{"$Value":"0"}},
+{"$Type":"var","name":"SegDep","value":{"$Value":"0"}},
+{"$Type":"var","name":"IniTrans","value":{"$Value":"—"}},
+{"$Type":"var","name":"IniEst","value":{"$Value":"—"}},
+{"$Type":"var","name":"IniCam","value":{"$Value":"—"}},
+{"$Type":"var","name":"IniDep","value":{"$Value":"—"}},
+{"$Type":"var","name":"FinTrans","value":{"$Value":"—"}},
+{"$Type":"var","name":"FinEst","value":{"$Value":"—"}},
+{"$Type":"var","name":"FinCam","value":{"$Value":"—"}},
+{"$Type":"var","name":"FinDep","value":{"$Value":"—"}},
+
+/* ==== Inicio de pantalla ==== */
+{"$Type":"when","eventName":"Screen.Initialize","statements":[
+  {"$Type":"setprop","component":"Saludo","property":"Text",
+   "value":{"$Type":"join","items":[{"$Value":"Hola, "},{"$Type":"call","component":"BaseDatos","method":"GetValue","args":[{"$Value":"usuario"},{"$Value":"Usuario"}]}]} }
+]},
+
+/* ==== Actualización cada segundo ==== */
+{"$Type":"when","eventName":"Reloj1.Timer","statements":[
+  {"$Type":"if","test":{"$Value":"ActivoTrans"},"then":[
+     {"$Type":"assign","name":"SegTrans","value":{"$Type":"+","args":[{"$Value":"SegTrans"},{"$Value":"1"}]}},
+     {"$Type":"setprop","component":"LblInfoTransporte","property":"Text",
+      "value":{"$Type":"join","items":[{"$Value":"Inicio: "},{"$Value":"IniTrans"},{"$Value":"   Fin: —   Total: "},
+        {"$Type":"call","component":"procedure","name":"SegundosATexto","args":[{"$Value":"SegTrans"}]}]}}
+  ]},
+  {"$Type":"if","test":{"$Value":"ActivoEst"},"then":[
+     {"$Type":"assign","name":"SegEst","value":{"$Type":"+","args":[{"$Value":"SegEst"},{"$Value":"1"}]}},
+     {"$Type":"setprop","component":"LblInfoEstudio","property":"Text",
+      "value":{"$Type":"join","items":[{"$Value":"Inicio: "},{"$Value":"IniEst"},{"$Value":"   Fin: —   Total: "},
+        {"$Type":"call","component":"procedure","name":"SegundosATexto","args":[{"$Value":"SegEst"}]}]}}
+  ]},
+  {"$Type":"if","test":{"$Value":"ActivoCam"},"then":[
+     {"$Type":"assign","name":"SegCam","value":{"$Type":"+","args":[{"$Value":"SegCam"},{"$Value":"1"}]}},
+     {"$Type":"setprop","component":"LblInfoCaminar","property":"Text",
+      "value":{"$Type":"join","items":[{"$Value":"Inicio: "},{"$Value":"IniCam"},{"$Value":"   Fin: —   Total: "},
+        {"$Type":"call","component":"procedure","name":"SegundosATexto","args":[{"$Value":"SegCam"}]}]}}
+  ]},
+  {"$Type":"if","test":{"$Value":"ActivoDep"},"then":[
+     {"$Type":"assign","name":"SegDep","value":{"$Type":"+","args":[{"$Value":"SegDep"},{"$Value":"1"}]}},
+     {"$Type":"setprop","component":"LblInfoDeporte","property":"Text",
+      "value":{"$Type":"join","items":[{"$Value":"Inicio: "},{"$Value":"IniDep"},{"$Value":"   Fin: —   Total: "},
+        {"$Type":"call","component":"procedure","name":"SegundosATexto","args":[{"$Value":"SegDep"}]}]}}
+  ]}
+]},
+
+/* ==== Procedimiento: enviar a Google Sheets ==== */
+{"$Type":"def","name":"EnviarRegistro","args":[{"name":"actividad"},{"name":"horaIni"},{"name":"horaFin"},{"name":"seg"}],
+ "body":[
+  {"$Type":"setprop","component":"Web1","property":"Url","value":{"$Value":"https://script.google.com/macros/s/TU_URL_DE_HOJA/exec"}},
+  {"$Type":"call","component":"Web1","method":"PostText",
+   "args":[{"$Type":"makejson","pairs":[
+     {"k":"usuario","v":{"$Type":"call","component":"BaseDatos","method":"GetValue","args":[{"$Value":"usuario"},{"$Value":"Anon"}]}},
+     {"k":"actividad","v":{"$Value":"actividad"}},
+     {"k":"inicio","v":{"$Value":"horaIni"}},
+     {"k":"fin","v":{"$Value":"horaFin"}},
+     {"k":"tiempo","v":{"$Type":"quotient","args":[{"$Value":"seg"},{"$Value":"60"}]}}
+   ]}]}
+ ]},
+
+/* ==== Botones de cada actividad ==== */
+{"$Type":"when","eventName":"BtnInicioTransporte.Click","statements":[
+  {"$Type":"assign","name":"ActivoTrans","value":{"$Value":"true"}},
+  {"$Type":"assign","name":"SegTrans","value":{"$Value":"0"}},
+  {"$Type":"assign","name":"IniTrans","value":{"$Type":"call","component":"procedure","name":"FormatearHora","args":[{"$Type":"now"}]}},
+  {"$Type":"setprop","component":"BtnInicioTransporte","property":"BackgroundColor","value":{"$Value":"&HFF2BB673"}},
+  {"$Type":"call","component":"procedure","name":"Vibrar"}
+]},
+{"$Type":"when","eventName":"BtnFinTransporte.Click","statements":[
+  {"$Type":"assign","name":"ActivoTrans","value":{"$Value":"false"}},
+  {"$Type":"assign","name":"FinTrans","value":{"$Type":"call","component":"procedure","name":"FormatearHora","args":[{"$Type":"now"}]}},
+  {"$Type":"setprop","component":"LblInfoTransporte","property":"Text",
+    "value":{"$Type":"join","items":[{"$Value":"Inicio: "},{"$Value":"IniTrans"},{"$Value":"   Fin: "},{"$Value":"FinTrans"},{"$Value":"   Total: "},
+      {"$Type":"call","component":"procedure","name":"SegundosATexto","args":[{"$Value":"SegTrans"}]}]}},
+  {"$Type":"call","component":"procedure","name":"EnviarRegistro","args":[{"$Value":"Transporte"},{"$Value":"IniTrans"},{"$Value":"FinTrans"},{"$Value":"SegTrans"}]},
+  {"$Type":"setprop","component":"BtnInicioTransporte","property":"BackgroundColor","value":{"$Value":"&HFFFFAD66"}}
+]},
+
+{"$Type":"when","eventName":"BtnInicioEstudio.Click","statements":[
+  {"$Type":"assign","name":"ActivoEst","value":{"$Value":"true"}},
+  {"$Type":"assign","name":"SegEst","value":{"$Value":"0"}},
+  {"$Type":"assign","name":"IniEst","value":{"$Type":"call","component":"procedure","name":"FormatearHora","args":[{"$Type":"now"}]}},
+  {"$Type":"setprop","component":"BtnInicioEstudio","property":"BackgroundColor","value":{"$Value":"&HFF2BB673"}},
+  {"$Type":"call","component":"procedure","name":"Vibrar"}
+]},
+{"$Type":"when","eventName":"BtnFinEstudio.Click","statements":[
+  {"$Type":"assign","name":"ActivoEst","value":{"$Value":"false"}},
+  {"$Type":"assign","name":"FinEst","value":{"$Type":"call","component":"procedure","name":"FormatearHora","args":[{"$Type":"now"}]}},
+  {"$Type":"setprop","component":"LblInfoEstudio","property":"Text",
+    "value":{"$Type":"join","items":[{"$Value":"Inicio: "},{"$Value":"IniEst"},{"$Value":"   Fin: "},{"$Value":"FinEst"},{"$Value":"   Total: "},
+      {"$Type":"call","component":"procedure","name":"SegundosATexto","args":[{"$Value":"SegEst"}]}]}},
+  {"$Type":"call","component":"procedure","name":"EnviarRegistro","args":[{"$Value":"Estudio"},{"$Value":"IniEst"},{"$Value":"FinEst"},{"$Value":"SegEst"}]},
+  {"$Type":"setprop","component":"BtnInicioEstudio","property":"BackgroundColor","value":{"$Value":"&HFFFFAD66"}}
+]},
+
+{"$Type":"when","eventName":"BtnInicioCaminar.Click","statements":[
+  {"$Type":"assign","name":"ActivoCam","value":{"$Value":"true"}},
+  {"$Type":"assign","name":"SegCam","value":{"$Value":"0"}},
+  {"$Type":"assign","name":"IniCam","value":{"$Type":"call","component":"procedure","name":"FormatearHora","args":[{"$Type":"now"}]}},
+  {"$Type":"setprop","component":"BtnInicioCaminar","property":"BackgroundColor","value":{"$Value":"&HFF2BB673"}},
+  {"$Type":"call","component":"procedure","name":"Vibrar"}
+]},
+{"$Type":"when","eventName":"BtnFinCaminar.Click","statements":[
+  {"$Type":"assign","name":"ActivoCam","value":{"$Value":"false"}},
+  {"$Type":"assign","name":"FinCam","value":{"$Type":"call","component":"procedure","name":"FormatearHora","args":[{"$Type":"now"}]}},
+  {"$Type":"setprop","component":"LblInfoCaminar","property":"Text",
+    "value":{"$Type":"join","items":[{"$Value":"Inicio: "},{"$Value":"IniCam"},{"$Value":"   Fin: "},{"$Value":"FinCam"},{"$Value":"   Total: "},
+      {"$Type":"call","component":"procedure","name":"SegundosATexto","args":[{"$Value":"SegCam"}]}]}},
+  {"$Type":"call","component":"procedure","name":"EnviarRegistro","args":[{"$Value":"Caminar"},{"$Value":"IniCam"},{"$Value":"FinCam"},{"$Value":"SegCam"}]},
+  {"$Type":"setprop","component":"BtnInicioCaminar","property":"BackgroundColor","value":{"$Value":"&HFFFFAD66"}}
+]},
+
+{"$Type":"when","eventName":"BtnInicioDeporte.Click","statements":[
+  {"$Type":"assign","name":"ActivoDep","value":{"$Value":"true"}},
+  {"$Type":"assign","name":"SegDep","value":{"$Value":"0"}},
+  {"$Type":"assign","name":"IniDep","value":{"$Type":"call","component":"procedure","name":"FormatearHora","args":[{"$Type":"now"}]}},
+  {"$Type":"setprop","component":"BtnInicioDeporte","property":"BackgroundColor","value":{"$Value":"&HFF2BB673"}},
+  {"$Type":"call","component":"procedure","name":"Vibrar"}
+]},
+{"$Type":"when","eventName":"BtnFinDeporte.Click","statements":[
+  {"$Type":"assign","name":"ActivoDep","value":{"$Value":"false"}},
+  {"$Type":"assign","name":"FinDep","value":{"$Type":"call","component":"procedure","name":"FormatearHora","args":[{"$Type":"now"}]}},
+  {"$Type":"setprop","component":"LblInfoDeporte","property":"Text",
+    "value":{"$Type":"join","items":[{"$Value":"Inicio: "},{"$Value":"IniDep"},{"$Value":"   Fin: "},{"$Value":"FinDep"},{"$Value":"   Total: "},
+      {"$Type":"call","component":"procedure","name":"SegundosATexto","args":[{"$Value":"SegDep"}]}]}},
+  {"$Type":"call","component":"procedure","name":"EnviarRegistro","args":[{"$Value":"Deporte"},{"$Value":"IniDep"},{"$Value":"FinDep"},{"$Value":"SegDep"}]},
+  {"$Type":"setprop","component":"BtnInicioDeporte","property":"BackgroundColor","value":{"$Value":"&HFFFFAD66"}}
+]},
+
+/* Resumen y cierre de sesión */
+{"$Type":"when","eventName":"BtnResumen.Click","statements":[
+  {"$Type":"call","component":"control","method":"open another screen","args":[{"$Value":"Resumen"}]}
+]},
+{"$Type":"when","eventName":"BtnCerrarSesion.Click","statements":[
+  {"$Type":"call","component":"BaseDatos","method":"ClearAll","args":[]},
+  {"$Type":"call","component":"control","method":"close screen"},
+  {"$Type":"call","component":"control","method":"open another screen","args":[{"$Value":"Inicio"}]}
+]}
+
+]}
+|#
