@@ -1,0 +1,8 @@
+{
+  "components": [
+    {"name": "SplashScreen", "type": "Screen"},
+    {"name": "Inicio", "type": "Screen"},
+    {"name": "Menu", "type": "Screen"},
+    {"name": "Resumen", "type": "Screen"}
+  ]
+}
