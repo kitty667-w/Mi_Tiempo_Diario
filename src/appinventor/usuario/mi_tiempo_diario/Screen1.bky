@@ -1,17 +1,1 @@
-#|
-$JSON
-{"YaVersion":5,"Properties":
-{"$Name":"SplashScreen"},
-"Blocks":[
-{
-  "$Type":"when",
-  "eventName":"RelojSplash.Timer",
-  "statements":[
-    {"$Type":"call",
-     "component":"control",
-     "method":"open another screen",
-     "args":[{"$Value":"Inicio"}]}
-  ]
-}
-]}
-|#
+<xml xmlns="http://www.w3.org/1999/xhtml"></xml>
